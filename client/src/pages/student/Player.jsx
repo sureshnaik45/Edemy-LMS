@@ -10,6 +10,16 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Loading from "../../components/student/Loading";
 
+export const getYouTubeVideoId = (url) => {
+  if (!url) return null;
+  // Regex to find the video ID from various YouTube URL formats
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  // Return the 11-character ID
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 const Player = () => {
 
   const {enrolledCourses, calculateChapterTime, backendUrl, getToken, userData, fetchUserEnrolledCourses} = useContext(AppContext)
@@ -19,7 +29,6 @@ const Player = () => {
   const [playerData, setPlayerData] = useState(null)
   const [progressData, setProgressData] = useState(null)
   const [initialRating, setInitialRating] = useState(0)
-
 
   const getCourseData = () =>{
     enrolledCourses.map((course)=>{
@@ -61,10 +70,7 @@ const Player = () => {
 		toast.error(error.message)
 	}
   }
-
-
   
-
   const getCourseProgress = async () => {
 	try {
 		const token = await getToken();
@@ -101,10 +107,9 @@ const Player = () => {
 	}
   }
 
-
   useEffect(()=>{
 	getCourseProgress();
-  },[])
+  },[courseId])
 
 	return courseData ? (
 		<>
@@ -187,33 +192,29 @@ const Player = () => {
 							</div>
 						))}
 					</div>
-
-            <div className=" flex items-center gap-2 py-3 mt-10 ">
-              <h1 className="text-xl font-bold">Rate this Course:</h1>
-              <Rating initialRating={initialRating} onRate={handleRate}/>
-            </div>
-
-
+					<div className=" flex items-center gap-2 py-3 mt-10 ">
+					<h1 className="text-xl font-bold">Rate this Course:</h1>
+					<Rating initialRating={initialRating} onRate={handleRate}/>
+					</div>
 				</div>
 
 				{/* right column */}
 				<div className="md:mt-10">
-          {playerData ? (
-            <div className="">
-              <YouTube videoId={playerData.lectureUrl.split('/').pop()}  iframeClassName="w-full aspect-video"/>
-              
-              <div className="flex justify-between items-center mt-1">
-                <p>{playerData.chapter}.{playerData.lecture} {playerData.lectureTitle} </p>
-                <button onClick={() => markLectureAsCompleted(playerData.lectureId)} className="text-blue-600">{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark As Complete'}</button>
-              </div>
-            </div>
-          ) 
-          :  
-          <img src={courseData ? courseData.courseThumbnail : ''} alt="courseThumbnail" />
-        }
-        </div>
+					{playerData ? (
+						<div className="">
+						<YouTube videoId={getYouTubeVideoId(playerData.lectureUrl)} iframeClassName="w-full aspect-video"/>	
+						<div className="flex justify-between items-center mt-1">
+							<p>{playerData.chapter}.{playerData.lecture} {playerData.lectureTitle} </p>
+							<button onClick={() => markLectureAsCompleted(playerData.lectureId)} className="text-blue-600">{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark As Complete'}</button>
+						</div>
+						</div>
+					) 
+					:  
+					<img src={courseData ? courseData.courseThumbnail : ''} alt="courseThumbnail" />
+					}
+				</div>
 			</div>
-      <Footer/>
+      	<Footer/>
 		</>
 	)
 	: <Loading/>;

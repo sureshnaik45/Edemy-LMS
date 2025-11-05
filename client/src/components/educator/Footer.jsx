@@ -1,10 +1,4 @@
-
-
-  import React from 'react'
 import { assets } from '../../assets/assets'
-import { Link } from 'react-router-dom'
-import { FacebookLogo, GitBranch, GithubLogo, LinkedinLogo, TwitterLogo, WhatsappLogo } from 'phosphor-react'
-import SocialIcons from '../SocialIcons'
 
 const Footer = () => {
   return (
@@ -15,10 +9,6 @@ const Footer = () => {
         <p className='py-4 text-center text-xs md:text-sm text-gray-500'>
           Copyright 2025 © Edemy. All Right Reserved.
         </p>
-      </div>
-
-      <div className=''>
-        <SocialIcons/>
       </div>
     </footer>
   )

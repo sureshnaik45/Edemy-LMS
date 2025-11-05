@@ -1,4 +1,3 @@
-import React from 'react'
 import { assets } from '../../assets/assets'
 
 const Companies = () => {
@@ -16,4 +15,4 @@ const Companies = () => {
   )
 }
 
-export default Companies
+export default Companies;

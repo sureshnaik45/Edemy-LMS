@@ -1,4 +1,4 @@
-import React, { act, useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
 import { assets } from '../../assets/assets'
@@ -7,11 +7,9 @@ import axios from 'axios'
 import { AppContext } from '../../context/AppContext'
 import Logger from '../../components/Logger'
 
-
 const AddCourse = () => {
 
-  const { backendUrl, getToken,} = useContext(AppContext)
-
+  const { backendUrl, getToken,} = useContext(AppContext);
 
   const quillRef =  useRef(null)
   const editorRef =  useRef(null)
@@ -56,9 +54,6 @@ const AddCourse = () => {
     }
   };
 
-
-
-
   const handleLecture = (action, chapterId, lectureIndex) => {
     if(action === 'add'){
       setCurrentChapterId(chapterId);
@@ -67,7 +62,10 @@ const AddCourse = () => {
       setChapters(
         chapters.map((chapter)=> {
           if(chapter.chapterId === chapterId){
-            chapter.chapterContent.splice(lectureIndex,1);
+            return {
+              ...chapter,
+              chapterContent: chapter.chapterContent.filter((lecture, i) => i !== lectureIndex)
+            };
           }
           return chapter;
         })
@@ -75,19 +73,23 @@ const AddCourse = () => {
     }
   };
 
-
   const addLecture = ()=>{
     setChapters(
+      // Create a new chapters array
       chapters.map((chapter)=> {
         if(chapter.chapterId === currentChapterId){
           const newLecture = {
             ...lectureDetails,
+            lectureDuration: Number(lectureDetails.lectureDuration),
             lectureOrder: chapter.chapterContent.length > 0 ? chapter.chapterContent.slice(-1)[0].lectureOrder + 1 : 1,
             lectureId: uniqid()
           };
-          // console.log("LectureId" , lectureId);
-          console.log("Lecture" , newLecture);
-          chapter.chapterContent.push(newLecture);
+          
+          // Create a new chapter object with a new chapterContent array
+          return {
+            ...chapter,
+            chapterContent: [...chapter.chapterContent, newLecture]
+          };
         }
         return chapter;
       })
@@ -101,39 +103,26 @@ const AddCourse = () => {
     });
   }
 
-
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
   
       if (!image) {
         toast.error("Thumbnail Not Selected");
-        return; // Prevent further execution
+        return;
       }
-  
-      // if (!chapters.length) {
-      //   toast.error("At least one chapter is required!");
-      //   return;
-      // }
-  
-      // // Ensure each chapter has a chapter order
-      // const updatedChapters = chapters.map((ch, index) => ({
-      //   ...ch,
-      //   chapterorder: ch.chapterorder || index + 1, // Auto-assign order if missing
-      // }));
   
       const courseData = {
         courseTitle,
         courseDescription: quillRef.current.root.innerHTML,
         coursePrice: Number(coursePrice),
         discount: Number(discount),
-        // isPublished: true, // ✅ Fix: Include isPublished field
         courseContent: chapters,
       };
   
       const formData = new FormData();
-      formData.append("courseData", JSON.stringify(courseData)); // ✅ Ensure courseData is sent as JSON
-      formData.append("image", image); // ✅ Ensure image is sent correctly
+      formData.append("courseData", JSON.stringify(courseData)); // Ensure courseData is sent as JSON
+      formData.append("image", image); // Ensure image is sent correctly
   
       const token = await getToken();
       const { data } = await axios.post(
@@ -161,67 +150,6 @@ const AddCourse = () => {
     }
   };
 
-
-
-//  const handleSubmit = async (e) => {
-//   try {
-//     e.preventDefault();
-
-//     if (!image) {
-//       toast.error("Thumbnail Not Selected");
-//       return; // Prevent further execution
-//     }
-
-//     if (!chapters.length) {
-//       toast.error("At least one chapter is required!");
-//       return;
-//     }
-
-//     // Ensure each chapter has a chapter order
-//     const updatedChapters = chapters.map((ch, index) => ({
-//       ...ch,
-//       chapterorder: ch.chapterorder || index + 1, // Auto-assign order if missing
-//     }));
-
-//     const courseData = {
-//       courseTitle,
-//       courseDescription: quillRef.current.root.innerHTML,
-//       coursePrice: Number(coursePrice),
-//       discount: Number(discount),
-//       isPublished: true, // ✅ Fix: Include isPublished field
-//       courseContent: updatedChapters,
-//     };
-
-//     const formData = new FormData();
-//     formData.append("courseData", JSON.stringify(courseData)); // ✅ Ensure courseData is sent as JSON
-//     formData.append("image", image); // ✅ Ensure image is sent correctly
-
-//     const token = await getToken();
-//     const { data } = await axios.post(
-//       backendUrl + "/api/educator/add-course",
-//       formData,
-//       { headers: { Authorization: `Bearer ${token}` } }
-//     );
-
-//     console.log("data", data);
-
-//     if (data.success) {
-//       toast.success(data.message);
-//       setCourseTitle("");
-//       setCoursePrice(0);
-//       setDiscount(0);
-//       setImage(null);
-//       setChapters([]);
-//       quillRef.current.root.innerHTML = "";
-//     } else {
-//       toast.error(data.message);
-//     }
-//   } catch (error) {
-//     toast.error(error.message);
-//     console.log(error.message);
-//   }
-// };
-
   useEffect(()=>{
     // initiate Quill only once
     if(!quillRef.current && editorRef.current){
@@ -229,13 +157,7 @@ const AddCourse = () => {
         theme: 'snow',
       })
     }
-
   },[])
-
-
-
-
-
 
   return (
     <div className='h-screen overflow-scroll flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
@@ -246,14 +168,12 @@ const AddCourse = () => {
         <div className='flex flex-col gap-1'>
           <p>Course Title: </p>
           <input onChange={e => setCourseTitle(e.target.value)} value={courseTitle} type="text" placeholder='Type here' className='outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500' required />
-
         </div>
 
         <div className='flex flex-col gap-1'>
           <p>Course Description:</p>
           <div ref={editorRef}></div>
         </div>
-
 
         <div className='flex items-center justify-between flex-wrap'>
           <div className='flex flex-col gap-1'>
@@ -275,7 +195,6 @@ const AddCourse = () => {
         <div className='flex flex-col gap-1'>
           <p>Discount %</p>
           <input onChange={e => setDiscount(e.target.value)} value={discount} type="number" placeholder='0' min={0} max={100} className='outline-none md:py-2.5 py-2 px-3 w-28 rounded border border-gray-500' required />
-
         </div>
 
           {/* Adding chapters & lectures  */}
@@ -286,13 +205,9 @@ const AddCourse = () => {
                   <div className='flex items-center'>
                   <img onClick={()=> handleChapter('toggle', chapter.chapterId)} width={14} className={`mr-2 cursor-pointer transition-all ${chapter.collapsed && "-rotate-90"}`} src={assets.dropdown_icon} alt="" />
                   <span className='font-semibold'> {chapterIndex + 1} {chapter.chapterTitle} </span>
-
                   </div>
                   <span className='text-gray-500'>{chapter.chapterContent.length} Lectures</span>
-
                   <img onClick={()=> handleChapter('remove',chapter.chapterId)} className='cursor-pointer'  src={assets.cross_icon} alt="" />
-
-
                 </div>
                 {!chapter.collapsed && (
                   <div className='p-4'>
@@ -303,8 +218,6 @@ const AddCourse = () => {
                       </div>
                     ))}
                     <div onClick={()=> handleLecture('add', chapter.chapterId)} className='inline-flex bg-gray-100 p-2 rounded cursor-pointer mt-2'>+ Add Lectures</div>
-
-
                   </div>
                 )}
 
@@ -349,30 +262,24 @@ const AddCourse = () => {
                     <div className='mb-2'>
                       <p>Is Preview Free? </p>
                       <input 
-                      type="checkbox"
-                      className='mt-1 block w-full border rounded py-1 px-2'
-                      value={lectureDetails.isPreviewFree}
-                      // onClick={(e) => setLectureDetails({...lectureDetails, isPreviewFree: e.target.value})}
-                      onClick={(e) => setLectureDetails({...lectureDetails, isPreviewFree: true})}
+                        type="checkbox"
+                        className='mt-1 block w-auto border rounded'
+                        checked={lectureDetails.isPreviewFree}
+                        onChange={(e) => setLectureDetails(prev => ({...prev, isPreviewFree: !prev.isPreviewFree}))}
                       />
                     </div>
 
-                    <button className='w-full bg-blue-400 text-white px-4py2
+                    <button className='w-full bg-blue-400 text-white px-4 py-2
                      rounded' onClick={addLecture} type='button'>Add</button>
 
                      <img onClick={()=> setShowPopup(false)} className='absolute top-4 right-4 w-4 cursor-pointer' src={assets.cross_icon} alt="" />
-
-
                   </div>
-
                 </div>
               )
             }
           </div>
-            <button type='submit' className='bg-black font-semibold text-white w-max pt-2.5 px-8 py-2 rounded my-4'>ADD</button>
-
-      </form>
-      
+          <button type='submit' className='bg-black font-semibold text-white w-max pt-2.5 px-8 py-2 rounded my-4'>ADD</button>
+      </form>      
     </div>
   )
 }

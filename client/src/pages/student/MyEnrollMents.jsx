@@ -1,20 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppContext";
 import { Line } from "rc-progress";
 import Footer from "../../components/student/Footer";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { data } from "react-router-dom";
-
-
 
 const MyEnrollMents = () => {
 	const {
 		navigate,
 		enrolledCourses,
 		calculateCourseDuration,
-		userData,
-		fetchUserEnrolledCourses,
 		backendUrl,
 		getToken,
 		calculateNoOfLectures,
@@ -50,12 +45,6 @@ const MyEnrollMents = () => {
 			toast.error(error.message);
 		}
 	};
-
-  useEffect(()=>{
-    if(userData){
-      fetchUserEnrolledCourses();
-    }
-  },[userData])
 
   useEffect(()=>{
     if(enrolledCourses.length > 0){

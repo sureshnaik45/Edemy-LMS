@@ -1,10 +1,10 @@
 import { createContext, useEffect, useState } from "react";
-import { dummyCourses } from "../assets/assets";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import humanizeDuration from "humanize-duration"
 import {useAuth, useUser} from '@clerk/clerk-react'
 import axios from 'axios'
 import {  toast } from 'react-toastify';
+
 export const AppContext = createContext()
 
 export const AppContextProvider = (props)=>{
@@ -48,7 +48,6 @@ export const AppContextProvider = (props)=>{
 
         try {
             const token = await getToken();
-
             const {data} = await axios.get(backendUrl + '/api/user/data' , {headers: {Authorization: `Bearer ${token}`}})
         
             if(data.success){
@@ -102,37 +101,13 @@ export const AppContextProvider = (props)=>{
         return totalLectures;
     }
 
-    // Fetch user enrolled courses
-
-    // const fetchUserEnrolledCourses = async()=>{
-    //     // setEnrolledCourses(dummyCourses)
-    //    try {
-    //     const token = await getToken();
-
-    //     const data = await axios.get(backendUrl + '/api/user/enrolled-courses', {headers: {Authorization: `Bearer ${token}`}})
-        
-    //     console.log("Data",data);
-    //     if(data){
-    //         setEnrolledCourses(data.enrolledCourses.reverse());
-    //         // console.log("enroll", enrolledCourses);
-    //         // console.log("setenroll", enrolledCourses);
-            
-    //     }else{
-    //         toast.error(data.message)
-    //     }
-    //    } catch (error) {
-    //     toast.error(error.message)
-    //    }
-    // }
-
-
     const fetchUserEnrolledCourses = async () => {
         try {
             const token = await getToken();
             const response = await axios.get(backendUrl + "/api/user/enrolled-courses", {
                 headers: { Authorization: `Bearer ${token}` }
             });
-    
+
             // console.log("Response:", response); // Debugging: Log full response
     
             if (response.data && response.data.enrolledCourses) {
@@ -154,17 +129,19 @@ export const AppContextProvider = (props)=>{
 
     },[])
 
-
-    // const logToken = async ()=>{
-    //     console.log(await getToken());
-        
-    // }
-
     useEffect(()=>{
         if(user){
-            fetchUserData()
-            // logToken()
-            fetchUserEnrolledCourses()
+          const loadData = async () => {
+            // Wait for user data first
+            await fetchUserData();
+            // Then fetch enrolled courses
+            await fetchUserEnrolledCourses();
+            
+            // Or, if they don't depend on each other, run them in parallel:
+            // await Promise.all([fetchUserData(), fetchUserEnrolledCourses()]);
+          }
+          loadData();
+          // logToken();
         }
     },[user])
 
@@ -175,13 +152,9 @@ export const AppContextProvider = (props)=>{
 
     }
 
-
     return (
         <AppContext.Provider value={value} >
             {props.children}
         </AppContext.Provider>
     )
-
-    
-
 }

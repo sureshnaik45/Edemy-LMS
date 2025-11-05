@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import  { useContext, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../components/student/Loading";
@@ -8,6 +8,7 @@ import Footer from "../../components/student/Footer";
 import YouTube from "react-youtube";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { getYouTubeVideoId } from "./Player";
 
 const CourseDetails = () => {
 	const { id } = useParams();
@@ -17,13 +18,13 @@ const CourseDetails = () => {
 	const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
 	const [playerData, setPlayerData] = useState(null);
 
-	const {
-		allCourses,
+	const {		
 		currency,
 		calculateRating,
 		calculateChapterTime,
 		calculateCourseDuration,
 		calculateNoOfLectures,
+		fetchUserEnrolledCourses,
 		backendUrl,
 		userData,
 		getToken,
@@ -37,6 +38,36 @@ const CourseDetails = () => {
 			const { data } = await axios.get(backendUrl + "/api/course/" + id);
 			if (data.success) {
 				setCourseData(data.courseData);
+			} else {
+				toast.error(data.message);
+			}
+		} catch (error) {
+			toast.error(error.message);
+		}
+	};
+
+	const enrollFree = async () => {
+		try {
+			if (!userData) {
+				return toast.warn("Login to Enroll!");
+			}
+			if (isAlreadyEnrolled) {
+				return toast.warn("Already Enrolled");
+			}
+
+			const token = await getToken();
+			const { data } = await axios.post(
+				backendUrl + "/api/user/enroll-free",
+				{ courseId: courseData._id },
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+
+			if (data.success) {
+                toast.success(data.message);
+                // Refresh enrolled courses in context
+                await fetchUserEnrolledCourses(); 
+                // Manually update state to show "Already Enrolled"
+                setIsAlreadyEnrolled(true);
 			} else {
 				toast.error(data.message);
 			}
@@ -74,7 +105,7 @@ const CourseDetails = () => {
 
 	useEffect(() => {
 		fetcheCourseData();
-	}, []);
+	}, [id]);
 
 	useEffect(() => {
 		if (userData && courseData) {
@@ -209,10 +240,8 @@ const CourseDetails = () => {
 																<p
 																	onClick={() =>
 																		setPlayerData({
-																			videoId: lecture.lectureUrl
-																				.split("/")
-																				.pop(),
-																		})
+																		videoId: getYouTubeVideoId(lecture.lectureUrl),
+																	})
 																	}
 																	className="text-blue-500 cursor-pointer"
 																>
@@ -311,16 +340,13 @@ const CourseDetails = () => {
 							</div>
 						</div>
 
-						<div
-							// onClick={enrollCourse}
-							
-						>
+						<div>
 							{isAlreadyEnrolled
 								? <p className="md:mt-6 mt-4 w-full py-3 rounded text-center  bg-blue-600 text-white font-medium"> Already Enrolled </p>
 								: courseData.coursePrice -
 										(courseData.discount * courseData.coursePrice) / 100 ===
 								  0.00
-								? <p className="md:mt-6 mt-4 w-full py-3 rounded text-center  bg-blue-600 text-white font-medium"> Free </p>
+								? <button onClick={enrollFree} className="md:mt-6 mt-4 w-full py-3 rounded text-center  bg-blue-600 text-white font-medium"> Enroll for Free</button>
 								: <button onClick={enrollCourse} className="md:mt-6 mt-4 w-full py-3 rounded text-center  bg-blue-600 text-white font-medium"> Enroll Now</button>}
 						</div>
 
