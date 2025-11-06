@@ -26,7 +26,7 @@ export const userEnrolledCourses = async (req,res)=>{
         const enrolledCourses = userData.enrolledCourses.map(course => {
             return course.toJSON(userId);
         });
-        res.json({success:true, enrolledCourses: userData.enrolledCourses})
+        res.json({success:true, enrolledCourses: enrolledCourses})        
     } catch (error) {
         res.json({success: false, message:error.message})
     }
