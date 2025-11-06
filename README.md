@@ -56,6 +56,9 @@ Think of Edemy LMS as a digital school or marketplace:
   * **File Uploads:** Cloudinary & Multer
   * **Webhooks:** Svix (for Clerk)
   * **Middleware:** CORS, dotenv
+  * **express-rate-limiter:** Used express-rate-limiter package for stopping the user to spam ther purchase.
+  With this the user can have 3 chances for a day to purchase a course, if fails again another day.
+  * **TTL:** Clearing the entries of purchase with pending, failure from db after 7 minutes
 
 ## Installation & Setup
 

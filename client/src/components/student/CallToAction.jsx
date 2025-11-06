@@ -10,10 +10,10 @@ const CallToAction = () => {
       <h1 className='text-xl md:text-4xl text-gray-800 font-semibold'>Learn anything, anytime, anywhere</h1>
       <p className='text-gray-500 sm:text-sm'>Whether you are a student looking to enhance your skills or an educator wanting to share knowledge, Edemy LMS is the perfect platform for you.
 
-Get Startd</p>
+Get Started</p>
       <div className='flex items-center font-medium gap-6 mt-4'>
         {user ? (
-						<a href='#' className="px-10 py-3 rounded-md text-white bg-blue-600"> Get Startd</a>
+						<a href='#' className="px-10 py-3 rounded-md text-white bg-blue-600"> Get Started</a>
 					) : (
 						<button
 							onClick={() => openSignIn()}
