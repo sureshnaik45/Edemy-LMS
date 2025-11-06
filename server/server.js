@@ -14,8 +14,10 @@ const app = express();
 await connectDB();
 await connectCloudinay();
 
-// middleware
-app.use(cors());
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+}));
 app.use(clerkMiddleware())
 
 // Routes

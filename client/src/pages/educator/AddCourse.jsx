@@ -258,12 +258,11 @@ const AddCourse = () => {
                       onChange={(e) => setLectureDetails({...lectureDetails, lectureUrl: e.target.value})}
                       />
                     </div>
-
-                    <div className='mb-2'>
+                    <div className='mb-2 flex items-center gap-2'> 
                       <p>Is Preview Free? </p>
                       <input 
                         type="checkbox"
-                        className='mt-1 block w-auto border rounded'
+                        className='w-4 h-4'
                         checked={lectureDetails.isPreviewFree}
                         onChange={() => setLectureDetails(prev => ({...prev, isPreviewFree: !prev.isPreviewFree}))}
                       />
