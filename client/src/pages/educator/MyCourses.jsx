@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import axios from 'axios'
@@ -10,17 +10,10 @@ const MyCourses = () => {
   const {currency, backendUrl, isEducator, getToken} = useContext(AppContext)
   const [courses, setCourses] = useState(null)
 
-
-
-
   const fetchEducatorCourses = async()=>{
-    // setCourses(allCourses)
     try {
       const token = await getToken();
       const {data} = await axios.get(backendUrl + '/api/educator/courses', { headers: { Authorization: `Bearer ${token}` } })
-      // console.log("data", data.courses);
-      
-
       data.success && setCourses(data.courses)
     } catch (error) {
       toast.error(error.message)
@@ -33,7 +26,35 @@ const MyCourses = () => {
     if(isEducator){
       fetchEducatorCourses();
     }
-  },[isEducator])
+  },[isEducator]);
+
+  const handlePublish = async (courseId) => {
+    if (!confirm("Are you sure you want to publish this course? It will be visible to all students.")) {
+      return;
+    }
+    try {
+      const token = await getToken();
+      const { data } = await axios.patch(
+        `${backendUrl}/api/educator/course/${courseId}/publish`,
+        {}, // No body data needed for this request
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        // Update the state locally to reflect the change immediately
+        setCourses(prevCourses => 
+          prevCourses.map(course => 
+            course._id === courseId ? { ...course, isPublished: true } : course
+          )
+        );
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return courses ? (
     <div className='h-full mb-10 flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
@@ -50,16 +71,15 @@ const MyCourses = () => {
                 <th className='px-4 py-3 font-semibold truncate'>Courses Price</th>
                 <th className='px-4 py-3 font-semibold truncate'>Earnings</th>
                 <th className='px-4 py-3 font-semibold truncate'>Students</th>
-                <th className='px-4 py-3 font-semibold truncate'>Course Status</th>
+                <th className='px-4 py-3 font-semibold truncate'>Date Added</th>
+                <th className='px-4 py-3 font-semibold truncate'>Status</th>
               </tr>
             </thead>
 
             <tbody className="text-sm text-gray-500">
               {courses.map((course)=> (
                 <tr key={course._id} className="border-b border-gray-500/20 ">
-                  <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
-                    
-                 
+                  <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">                    
                     <img 
                     src={course.courseThumbnail} 
                     alt="CoureImage"
@@ -67,14 +87,24 @@ const MyCourses = () => {
                      />
                      <span className="truncate hidden md:block">{course.courseTitle}</span>
                   </td>
-                  <td className="px-4 py-3">{(course.coursePrice - course.discount * course.coursePrice / 100) === 0 ? "" : "$"}   { (course.coursePrice - course.discount * course.coursePrice / 100) === 0 ? "Free" : (course.coursePrice - course.discount * course.coursePrice / 100) }  </td>
-                  <td className="px-4 py-3">{currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100)).toFixed(2)} </td>
-
+                  <td className="px-4 py-3">{(course.coursePrice - course.discount * course.coursePrice / 100) === 0 ? "" : "$"}   { (course.coursePrice - course.discount * course.coursePrice / 100) === 0 ? "Free" : (course.coursePrice - course.discount * course.coursePrice / 100) }</td>
+                  <td className="px-4 py-3">{currency} {course.earnings} </td>
                   <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
                   <td className='px-4 py-3'>
                     {new Date(course.createdAt).toLocaleDateString()}
                   </td>
-
+                  <td className='px-4 py-3'>
+                    {course.isPublished ? (
+                      <span className='text-green-600 font-medium'>Published</span>
+                    ) : (
+                      <button 
+                        onClick={() => handlePublish(course._id)}
+                        className='bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700'
+                      >
+                        Publish
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
 
@@ -89,4 +119,4 @@ const MyCourses = () => {
   <Loading/>
 }
 
-export default MyCourses
+export default MyCourses;

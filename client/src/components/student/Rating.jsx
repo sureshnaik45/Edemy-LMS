@@ -1,22 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const Rating = ({initialRating, onRate}) => {
-
-  const [rating, setRating] = useState(initialRating || 0)
-
-
+  const [rating, setRating] = useState(initialRating || 0);
   const handleRating = (value) => {
     setRating(value);
     if(onRate) onRate(value)
   }
-
 
   useEffect(()=>{
     if(initialRating){
       setRating(initialRating)
     }
   },[initialRating]);
-
 
   return (
     <div>
@@ -32,4 +27,4 @@ const Rating = ({initialRating, onRate}) => {
   )
 }
 
-export default Rating
+export default Rating;

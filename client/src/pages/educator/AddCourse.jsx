@@ -265,7 +265,7 @@ const AddCourse = () => {
                         type="checkbox"
                         className='mt-1 block w-auto border rounded'
                         checked={lectureDetails.isPreviewFree}
-                        onChange={(e) => setLectureDetails(prev => ({...prev, isPreviewFree: !prev.isPreviewFree}))}
+                        onChange={() => setLectureDetails(prev => ({...prev, isPreviewFree: !prev.isPreviewFree}))}
                       />
                     </div>
 

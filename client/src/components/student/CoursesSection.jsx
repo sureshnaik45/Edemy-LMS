@@ -3,16 +3,32 @@ import { Link } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
 import CourseCard from "./CourseCard";
 import Loading from "./Loading";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const CoursesSection = () => {
-    const { allCourses } = useContext(AppContext);
+    const { backendUrl } = useContext(AppContext);
     const [loading, setLoading] = useState(true);
+    const [courses, setCourses] = useState([]);
+
+    const fetchFeaturedCourses = async () => {
+        setLoading(true);
+        try {
+            const { data } = await axios.get(`${backendUrl}/api/course/featured`);
+            if (data.success) {
+                setCourses(data.courses);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+        setLoading(false);
+    };
 
     useEffect(() => {
-        if (allCourses && allCourses.length > 0) {
-            setLoading(false);
-        }
-    }, [allCourses]);
+        fetchFeaturedCourses();
+    }, []);
 
     return (
         <div className="py-16 md:px-40 px-8">
@@ -27,12 +43,11 @@ const CoursesSection = () => {
                 <Loading />
             ) : (
                 <div className="grid grid-cols-auto px-4 md:px-0 md:my-16 my-10 gap-4">
-                    {allCourses.slice(0, 4).map((course, index) => (
+                    {courses.map((course, index) => (
                         <CourseCard key={index} course={course} />
                     ))}
                 </div>
             )}
-
             <Link
                 to={"/course-list"}
                 onClick={() => scrollTo(0, 0)}

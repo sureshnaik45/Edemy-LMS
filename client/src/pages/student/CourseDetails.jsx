@@ -1,5 +1,5 @@
 import  { useContext, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
 import Loading from "../../components/student/Loading";
 import { assets } from "../../assets/assets";
@@ -9,6 +9,7 @@ import YouTube from "react-youtube";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { getYouTubeVideoId } from "./Player";
+import DOMPurify from 'dompurify';
 
 const CourseDetails = () => {
 	const { id } = useParams();
@@ -17,6 +18,7 @@ const CourseDetails = () => {
 	const [openSections, setOpenSections] = useState({});
 	const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false);
 	const [playerData, setPlayerData] = useState(null);
+	const navigate = useNavigate();
 
 	const {		
 		currency,
@@ -31,9 +33,6 @@ const CourseDetails = () => {
 	} = useContext(AppContext);
 
 	const fetcheCourseData = async () => {
-		// const findCourse = allCourses.find((course) => course._id === id);
-		// setCourseData(findCourse);
-
 		try {
 			const { data } = await axios.get(backendUrl + "/api/course/" + id);
 			if (data.success) {
@@ -64,10 +63,9 @@ const CourseDetails = () => {
 
 			if (data.success) {
                 toast.success(data.message);
-                // Refresh enrolled courses in context
                 await fetchUserEnrolledCourses(); 
-                // Manually update state to show "Already Enrolled"
                 setIsAlreadyEnrolled(true);
+				navigate(`/player/${courseData._id}`);
 			} else {
 				toast.error(data.message);
 			}
@@ -130,7 +128,7 @@ const CourseDetails = () => {
 					<p
 						className="pt-4 md:text-base text-sm"
 						dangerouslySetInnerHTML={{
-							__html: courseData.courseDescription.slice(0, 200),
+						__html: DOMPurify.sanitize(courseData.courseDescription.slice(0, 200) + '...'),
 						}}
 					></p>
 
@@ -206,14 +204,6 @@ const CourseDetails = () => {
 										<ul className="list-disc md:pl-10 pl-4 pr-4 py-2 text-gray-600 border-t border-gray-300">
 											{chapter.chapterContent.map((lecture, i) => (
 												<li key={i} className="flex items-start gap-2 py-1">
-													{/* <img onClick={()=> setPlayerData({
-                                  videoId: lecture.lectureUrl.split('/').pop()
-                                })}
-														className="w-4 h-4 mt-1 cursor-pointer"
-														src={assets.play_icon}
-														alt="play_icon"
-													/> */}
-
 													{lecture.isPreviewFree ? (
 														<img
 															onClick={() =>
@@ -272,7 +262,7 @@ const CourseDetails = () => {
 						<p
 							className="pt-3 rich-text"
 							dangerouslySetInnerHTML={{
-								__html: courseData.courseDescription,
+								__html: DOMPurify.sanitize(courseData.courseDescription),
 							}}
 						></p>
 					</div>

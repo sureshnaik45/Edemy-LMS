@@ -23,7 +23,9 @@ export const userEnrolledCourses = async (req,res)=>{
     try {
         const userId = req.auth.userId
         const userData = await User.findById(userId).populate('enrolledCourses')
-
+        const enrolledCourses = userData.enrolledCourses.map(course => {
+            return course.toJSON(userId);
+        });
         res.json({success:true, enrolledCourses: userData.enrolledCourses})
     } catch (error) {
         res.json({success: false, message:error.message})
@@ -127,37 +129,56 @@ export const updateUserCourseProgress = async(req,res)=>{
     try {
         const userId = req.auth.userId
         const {courseId, lectureId} = req.body
-        const progressData = await CourseProgress.findOne({userId, courseId})
 
-        if(progressData){
-            if(progressData.lectureCompleted.includes(lectureId)){
-                return res.json({success: true, message: "Lecture Already Completed"})
-            }
-            
-            progressData.lectureCompleted.push(lectureId)
-            progressData.completed = true
-            await progressData.save()
+        // validate input
+        if (!courseId || !lectureId) {
+            return res.json({ success: false, message: "Missing courseId or lectureId" });
         }
-        else{
-            await CourseProgress.create({
-                userId,
-                courseId,
-                lectureCompleted: [lectureId]
+        const result = await CourseProgress.updateOne(
+            { userId, courseId }, // The document to find
+            {
+                $addToSet: { lectureCompleted: lectureId }, // Atomically add lectureId to the set (array)
+                $set: { completed: true } // You can set other fields at the same time
+            },
+            { upsert: true } // If no document matches, create it
+        );
 
-            })
+        // Check if a document was actually modified or created
+        if (result.matchedCount === 0 && result.upsertedCount === 0) {
+             return res.json({success: false, message: "Could not update progress."});
         }
+
+        // Check if the lecture was already completed
+        if (result.matchedCount > 0 && result.modifiedCount === 0 && result.upsertedCount === 0) {
+             return res.json({success: true, message: "Lecture Already Completed"});
+        }
+
         res.json({success:true, message: 'Progress Updated'})
+
     } catch (error) {
         res.json({success: false, message:error.message})
     }
 }
+
+export const getAllUserCourseProgress = async (req, res) => {
+    try {
+        const userId = req.auth.userId;
+        
+        // Find all progress documents for the given user
+        const progressData = await CourseProgress.find({ userId }).lean();
+        
+        res.json({ success: true, progressData });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
 
 // get user course progress
 export const getUserCourseProgress = async(req,res)=>{
     try {
         const userId = req.auth.userId
         const {courseId} = req.body
-        const progressData = await CourseProgress.findOne({userId, courseId})
+        const progressData = await CourseProgress.findOne({userId, courseId}).lean()
         res.json({success: true, progressData})
     } catch (error) {
         res.json({success: false, message:error.message})

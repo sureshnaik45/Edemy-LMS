@@ -5,7 +5,7 @@ import Footer from "../../components/student/Footer";
 import { toast } from "react-toastify";
 import axios from "axios";
 
-const MyEnrollMents = () => {
+const MyEnrollments = () => {
 	const {
 		navigate,
 		enrolledCourses,
@@ -20,29 +20,37 @@ const MyEnrollMents = () => {
 	const getCourseProgress = async () => {
 		try {
 			const token = await getToken();
-
-			const tempProgressArray = await Promise.all(
-				enrolledCourses.map(async (course) => {
-					const { data } = await axios.post(
-						`${backendUrl}/api/user/get-course-progress`,
-						{ courseId: course._id },
-						{ headers: { Authorization: `Bearer ${token}` } }
-					);
-					console.log("dta", data.progressData);
-					
-
-					let totalLectures = calculateNoOfLectures(course);
-
-					const lectureCompleted = data.progressData
-						? data.progressData.lectureCompleted.length
-						: 0;
-					return { totalLectures, lectureCompleted };
-				})
+			const { data } = await axios.get(
+				`${backendUrl}/api/user/all-course-progress`,
+				{ headers: { Authorization: `Bearer ${token}` } }
 			);
+
+			if (!data.success) {
+				toast.error(data.message);
+				return;
+			}
+
+			// Map for quick lookup: courseId → progress document
+			const progressMap = new Map();
+			for (const progress of data.progressData) {
+				progressMap.set(progress.courseId, progress);
+			}
+
+			// Building progress array locally (no multiple API calls)
+			const tempProgressArray = enrolledCourses.map((course) => {
+				const progressData = progressMap.get(course._id);
+				const totalLectures = calculateNoOfLectures(course);
+
+				const lectureCompleted = progressData
+					? progressData.lectureCompleted.length
+					: 0;
+
+				return { totalLectures, lectureCompleted };
+			});
 
 			setProgressArray(tempProgressArray);
 		} catch (error) {
-			toast.error(error.message);
+			toast.error(error.message || "Failed to fetch course progress");
 		}
 	};
 
@@ -122,4 +130,4 @@ const MyEnrollMents = () => {
 	);
 };
 
-export default MyEnrollMents;
+export default MyEnrollments;

@@ -22,7 +22,7 @@ const courseSchema = new mongoose.Schema({
     courseDescription: {type: String, required: true},
     courseThumbnail: {type: String},
     coursePrice: {type: Number, required: true},
-    isPublished: { type: Boolean, default: true },
+    isPublished: { type: Boolean, default: false },
 
     discount: {type: Number, required: true, min:0, max: 100},
     courseContent: [chapterSchema],
@@ -34,6 +34,44 @@ const courseSchema = new mongoose.Schema({
         {type: String, ref: 'User'}
     ]
 },{timestamps: true, minimize: false})
+
+courseSchema.methods.toJSON = function (userId) {
+    const courseObject = this.toObject();
+
+    // Convert userId safely to string (handles undefined or null)
+    const userIdStr = userId ? userId.toString() : null;
+
+    // Check if user is enrolled or the educator
+    const isEnrolled = userIdStr
+        ? courseObject.enrolledStudents?.some(
+              (id) => id.toString() === userIdStr
+          )
+        : false;
+
+    const isEducator = userIdStr
+        ? courseObject.educator?.toString() === userIdStr
+        : false;
+
+    // If user is enrolled or educator, return full data
+    if (isEnrolled || isEducator) {
+        return courseObject;
+    }
+
+    // Otherwise, hide URLs for non-preview lectures
+    if (courseObject.courseContent && Array.isArray(courseObject.courseContent)) {
+        courseObject.courseContent.forEach((chapter) => {
+            if (chapter.chapterContent && Array.isArray(chapter.chapterContent)) {
+                chapter.chapterContent.forEach((lecture) => {
+                    if (!lecture.isPreviewFree) {
+                        lecture.lectureUrl = ""; // Hide the URL
+                    }
+                });
+            }
+        });
+    }
+
+    return courseObject;
+};
 
 const Course = mongoose.model('Course', courseSchema)
 export default Course;

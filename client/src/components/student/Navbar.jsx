@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { assets } from "../../assets/assets";
 import { Link } from "react-router-dom";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
@@ -8,8 +8,6 @@ import { toast } from "react-toastify";
 import Logger from "../Logger";
 
 const Navbar = () => {
-
-
 	const isCourseListPage = location.pathname.includes("/course-list");
 	const {navigate, isEducator, backendUrl, setIsEducator, getToken} = useContext(AppContext);
 	const { openSignIn } = useClerk();
@@ -22,10 +20,17 @@ const Navbar = () => {
 				return;
 			}
 
+			const secret = prompt("Use BECOME-1-EDUCATOR Please enter the admin secret key to become an educator:");
+            if (!secret) {
+                return; // User cancelled
+            }
+            
 			const token = await getToken();
 
-			const {data} = await axios.get(backendUrl + '/api/educator/update-role' , {headers: {Authorization: `Bearer ${token}`}})
-			console.log("educ", data);
+			const {data} = await axios.post(backendUrl + '/api/educator/update-role', 
+                { secret: secret }, // Send the secret in the request body
+                { headers: {Authorization: `Bearer ${token}`}}
+            );
 			
 			if(data.success){
 				setIsEducator(true);
@@ -74,22 +79,21 @@ const Navbar = () => {
 				)}
 			</div>
 			<div className="md:hidden flex items-center gap-2 sm:gap-5 text-gray-500">
-				{/* for phone scree  */}
 				
 				<div className="flex items-center gap-1 sm:gap-2 max-sm:text-xs">
-        {user && (
+        			{user && (
 						<>
 						<button onClick={becomeEducator}>{isEducator ? "Educator Dashboard" : "Become Educator" }</button>|{" "}
 						<Link to="/my-enrollments">My Enrollments</Link>
 					</>
 					)}
 				</div>
-        {
-          user ? <UserButton/> :
-				<button onClick={()=>openSignIn()}>
-					<img src={assets.user_icon} alt="" />
-				</button>
-        }
+				{
+				user ? <UserButton/> :
+						<button onClick={()=>openSignIn()}>
+							<img src={assets.user_icon} alt="" />
+						</button>
+				}
 			</div>
 		</div>
 	);

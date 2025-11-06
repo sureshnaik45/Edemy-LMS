@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm, ValidationError } from '@formspree/react';
 import { useNavigate } from 'react-router-dom';
 import Footer from './student/Footer';
@@ -12,7 +12,7 @@ const ContactForm = () => {
     if (state.succeeded) {
       const timer = setTimeout(() => {
         navigate('/'); // Navigate to the home page after 3 seconds
-      }, 4000);
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [state.succeeded, navigate]);

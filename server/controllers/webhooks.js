@@ -95,6 +95,15 @@ export const stripeWebhooks = async (request, response) => {
                 return;
             }
 
+            if (userData.enrolledCourses.includes(courseData._id)) {
+                console.log(`User ${userData._id} is already enrolled in course ${courseData._id}. Skipping.`);
+
+                // Still mark the purchase as completed, but don't re-enroll
+                purchaseData.status = 'completed';
+                await purchaseData.save();
+                return; 
+            }
+
             // Add user to enrolled students
             courseData.enrolledStudents.push(userData._id);
             await courseData.save();
