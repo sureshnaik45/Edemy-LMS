@@ -7,4 +7,14 @@ const PurchaseSchema = new mongoose.Schema({
     status: {type: String, enum: ['pending', 'completed', 'failed'], default: 'pending'},
 },{timestamps: true});
 
+PurchaseSchema.index(
+  { createdAt: 1 }, 
+  { 
+    expireAfterSeconds: 450,
+    partialFilterExpression: { 
+      status: { $in: ['pending', 'failed'] } 
+    } 
+  }
+);
+
 export const Purchase = mongoose.model('Purchase', PurchaseSchema);
