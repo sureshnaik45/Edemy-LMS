@@ -3,7 +3,6 @@ import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import Logger from '../../components/Logger'
 
 const MyCourses = () => {
 
@@ -59,9 +58,6 @@ const MyCourses = () => {
   return courses ? (
     <div className='h-full mb-10 flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='w-full'>
-      <div className="block sm:hidden ">
-					<Logger/>
-			</div>
         <h2 className=' pb-4 text-lg font-medium'>My Courses</h2>
         <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
           <table className='md:table-auto table-fixed w-full overflow-hidden'>
