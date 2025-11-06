@@ -1,7 +1,6 @@
 import { assets } from "../../assets/assets";
 import { UserButton, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
-import Logger from "../Logger";
 const Navbar = () => {
 	const { user } = useUser();
 	return (
@@ -11,9 +10,6 @@ const Navbar = () => {
 			</Link>
 
 			<div className="flex items-center gap-5 text-gray-500 relative">
-				<div className="hidden md:block">
-					<Logger />
-				</div>
 				<p>Hi! {user ? user.fullName : "Developers"} </p>
 				{user ? (
 					<UserButton />
