@@ -182,7 +182,7 @@ These endpoints are not called by the frontend. They are called by external serv
 ### Educator Features
 
 **Edit Course:** This is the most critical feature you are missing.
-How: Create a new page like /educator/edit-course/:courseId. This page can reuse your existing AddCourse.jsx component. You would first fetch the course's data and use it to pre-fill all the state variables (title, price, chapters, etc.). Then, the form's "Submit" button would call a new PATCH /api/educator/course/:courseId endpoint to save the changes.
+How: Create a new page like /educator/edit-course/:courseId. This page can reuse your existing AddCourse.jsx component. You would first fetch the course's data and use it to pre-fill all the state variables (title, price, chapters, etc.). Then, the form's "Submit" button would call a new POST /api/educator/course/:courseId endpoint to save the changes.
 
 **Course Categories:** This is essential for helping students find courses.
 How: Add a category: String field to your Course.js model. Add a dropdown menu (e.g., "Web Development", "Data Science", "Marketing") to your AddCourse.jsx form. Then, you can display these categories on your CourseCard.jsx and add filter buttons to the CoursesList.jsx page.

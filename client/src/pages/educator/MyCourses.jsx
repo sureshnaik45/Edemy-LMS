@@ -33,7 +33,7 @@ const MyCourses = () => {
     }
     try {
       const token = await getToken();
-      const { data } = await axios.patch(
+      const { data } = await axios.post(
         `${backendUrl}/api/educator/course/${courseId}/publish`,
         {}, // No body data needed for this request
         { headers: { Authorization: `Bearer ${token}` } }

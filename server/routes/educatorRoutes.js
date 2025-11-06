@@ -13,7 +13,6 @@ educatorRouter.post('/add-course', upload.single('image'), protectEducator, addC
 educatorRouter.get('/courses', protectEducator, getEducatorCourses);
 educatorRouter.get('/dashboard', protectEducator, educatorDashboardData);
 educatorRouter.get('/enrolled-students', protectEducator, getEnrolledStudentsData);
-// (PATCH is the correct HTTP method for a partial update)
-educatorRouter.patch('/course/:courseId/publish', protectEducator, publishCourse);
+educatorRouter.post('/course/:courseId/publish', protectEducator, publishCourse);
 
 export default educatorRouter;
